@@ -2,6 +2,7 @@ package pubsub
 
 import (
 	"encoding/json"
+	"log"
 
 	amqp "github.com/rabbitmq/amqp091-go"
 )
@@ -24,16 +25,16 @@ func SubscribeJSON[T any](
 		return err
 	}
 
-	recieveMessages := func() error {
+	recieveMessages := func() {
 		for delivery := range deliveryCh {
 			var obj T
-			if err := json.Unmarshal(delivery.Body, obj); err != nil {
-				return err
+			if err := json.Unmarshal(delivery.Body, &obj); err != nil {
+				log.Print("error: unmarshling deliveries", err)
+				return
 			}
 			handler(obj)
 			delivery.Ack(false)
 		}
-		return nil
 	}
 
 	go recieveMessages()
