@@ -33,6 +33,37 @@ func main() {
 		log.Fatalf("could not declare and bind client queue: %v", err)
 	}
 
+	gameState := gamelogic.NewGameState(userName)
+
+	for {
+		words := gamelogic.GetInput()
+		if len(words) == 0 {
+			continue
+		}
+		if words[0] == "spawn" {
+			if err := gameState.CommandSpawn(words); err != nil {
+				log.Fatalf("could not spawn unit: %v", err)
+			}
+			log.Print("unit spawned")
+		} else if words[0] == "move" {
+			if _, err = gameState.CommandMove(words); err != nil {
+				log.Fatalf("could not move unit: %v", err)
+			}
+			log.Print("unit moved")
+		} else if words[0] == "status" {
+			gameState.CommandStatus()
+		} else if words[0] == "help" {
+			gamelogic.PrintClientHelp()
+		} else if words[0] == "spam" {
+			fmt.Println("Spamming not allowed yet!")
+		} else if words[0] == "quit" {
+			gamelogic.PrintQuit()
+			break
+		} else {
+			fmt.Println("unknown command")
+		}
+	}
+
 	// wait for ctrl+c
 	signalChan := make(chan os.Signal, 1)
 	signal.Notify(signalChan, os.Interrupt)
