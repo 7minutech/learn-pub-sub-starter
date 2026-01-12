@@ -35,6 +35,11 @@ func main() {
 
 	gameState := gamelogic.NewGameState(userName)
 
+	err = pubsub.SubscribeJSON(conn, routing.ExchangePerilDirect, queueName, routing.PauseKey, pubsub.Transient, handlerPause(gameState))
+	if err != nil {
+		log.Fatalf("could not call SubscribeJSON: %v", err)
+	}
+
 	for {
 		words := gamelogic.GetInput()
 		if len(words) == 0 {
@@ -42,13 +47,16 @@ func main() {
 		}
 		if words[0] == "spawn" {
 			if err := gameState.CommandSpawn(words); err != nil {
-				log.Fatalf("could not spawn unit: %v", err)
+				fmt.Printf("could not spawn unit: %v", err)
+				continue
 			}
 			log.Print("unit spawned")
 		} else if words[0] == "move" {
 			if _, err = gameState.CommandMove(words); err != nil {
-				log.Fatalf("could not move unit: %v", err)
+				fmt.Printf("could not move unit: %v", err)
+				continue
 			}
+			fmt.Println("game paused", gameState.Paused)
 			log.Print("unit moved")
 		} else if words[0] == "status" {
 			gameState.CommandStatus()
