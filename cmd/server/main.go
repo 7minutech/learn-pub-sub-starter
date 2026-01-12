@@ -30,8 +30,7 @@ func main() {
 
 	gamelogic.PrintServerHelp()
 
-	exchange := routing.ExchangePerilDirect
-	key := routing.PauseKey
+	pubsub.DeclareAndBind(conn, routing.ExchangePerilTopic, routing.GameLogSlug, routing.GameLogKey, pubsub.Durable)
 
 	for {
 		words := gamelogic.GetInput()
@@ -40,10 +39,10 @@ func main() {
 		}
 		if words[0] == "pause" {
 			log.Print("sending pause message")
-			pubsub.PublishJSON(ch, exchange, key, routing.PlayingState{IsPaused: true})
+			pubsub.PublishJSON(ch, routing.ExchangePerilDirect, routing.PauseKey, routing.PlayingState{IsPaused: true})
 		} else if words[0] == "resume" {
 			log.Print("sending resume message")
-			pubsub.PublishJSON(ch, exchange, key, routing.PlayingState{IsPaused: false})
+			pubsub.PublishJSON(ch, routing.ExchangePerilDirect, routing.PauseKey, routing.PlayingState{IsPaused: false})
 		} else if words[0] == "quit" {
 			log.Print("sending quit message")
 			break
