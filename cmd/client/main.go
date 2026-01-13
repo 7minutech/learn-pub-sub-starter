@@ -22,6 +22,11 @@ func main() {
 	defer conn.Close()
 	fmt.Println("Peril game server connected to RabbitMQ!")
 
+	ch, err := conn.Channel()
+	if err != nil {
+		log.Fatalf("could not create channel on connection: %v", err)
+	}
+
 	userName, err := gamelogic.ClientWelcome()
 	if err != nil {
 		log.Fatalf("could not welcome user: %v", err)
@@ -37,7 +42,14 @@ func main() {
 
 	err = pubsub.SubscribeJSON(conn, routing.ExchangePerilDirect, queueName, routing.PauseKey, pubsub.Transient, handlerPause(gameState))
 	if err != nil {
-		log.Fatalf("could not call SubscribeJSON: %v", err)
+		log.Fatalf("could not call SubscribeJSON for pause: %v", err)
+	}
+
+	moveKey := routing.ArmyMoveKey + ".*"
+	moveQueueName := routing.ArmyMoveKey + "." + userName
+	err = pubsub.SubscribeJSON(conn, routing.ExchangePerilTopic, moveQueueName, moveKey, pubsub.Transient, handlerMove(gameState))
+	if err != nil {
+		log.Fatalf("could not call SubscribeJSON for move: %v", err)
 	}
 
 	for {
@@ -52,12 +64,13 @@ func main() {
 			}
 			log.Print("unit spawned")
 		} else if words[0] == "move" {
-			if _, err = gameState.CommandMove(words); err != nil {
+			mv, err := gameState.CommandMove(words)
+			if err != nil {
 				fmt.Printf("could not move unit: %v", err)
 				continue
 			}
-			fmt.Println("game paused", gameState.Paused)
 			log.Print("unit moved")
+			pubsub.PublishJSON(ch, routing.ExchangePerilTopic, moveQueueName, mv)
 		} else if words[0] == "status" {
 			gameState.CommandStatus()
 		} else if words[0] == "help" {
