@@ -25,7 +25,7 @@ func main() {
 
 	ch, err := conn.Channel()
 	if err != nil {
-		log.Fatalf("could not connect to RabbitMQ: %v", err)
+		log.Fatalf("could not create channel on connection: %v", err)
 	}
 
 	gamelogic.PrintServerHelp()
