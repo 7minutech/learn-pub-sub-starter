@@ -47,7 +47,7 @@ func main() {
 
 	moveKey := routing.ArmyMoveKey + ".*"
 	moveQueueName := routing.ArmyMoveKey + "." + userName
-	err = pubsub.SubscribeJSON(conn, routing.ExchangePerilTopic, moveQueueName, moveKey, pubsub.Transient, handlerMove(gameState))
+	err = pubsub.SubscribeJSON(conn, routing.ExchangePerilTopic, moveQueueName, moveKey, pubsub.Transient, handlerMove(gameState, ch))
 	if err != nil {
 		log.Fatalf("could not call SubscribeJSON for move: %v", err)
 	}
