@@ -10,9 +10,9 @@ import (
 type AckType int
 
 const (
-	ack         AckType = 0
-	nackRequeue AckType = 1
-	nackDiscard AckType = 2
+	Ack         AckType = 0
+	NackRequeue AckType = 1
+	NackDiscard AckType = 2
 )
 
 func SubscribeJSON[T any](
@@ -42,13 +42,13 @@ func SubscribeJSON[T any](
 			}
 			ackType := handler(obj)
 			switch ackType {
-			case ack:
+			case Ack:
 				delivery.Ack(false)
 				log.Print("Message was ack")
-			case nackRequeue:
+			case NackRequeue:
 				delivery.Nack(false, true)
 				log.Print("Message was nack and requeued")
-			case nackDiscard:
+			case NackDiscard:
 				delivery.Nack(false, false)
 				log.Print("Message was nack and discarded")
 			}
