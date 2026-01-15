@@ -1,6 +1,7 @@
 package pubsub
 
 import (
+	"github.com/bootdotdev/learn-pub-sub-starter/internal/routing"
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
@@ -25,11 +26,14 @@ func DeclareAndBind(
 		return ch, queue, err
 	}
 
-	if queueType == Durable {
-		queue, err = ch.QueueDeclare(queueName, true, false, false, false, nil)
-	} else {
-		queue, err = ch.QueueDeclare(queueName, false, true, true, false, nil)
-	}
+	queue, err = ch.QueueDeclare(
+		queueName,
+		queueType == Durable,
+		queueType != Durable,
+		queueType != Durable,
+		false,
+		amqp.Table{"x-dead-letter-exchange": routing.Exchange_DLX},
+	)
 	if err != nil {
 		return ch, queue, err
 	}
