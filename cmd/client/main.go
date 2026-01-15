@@ -52,6 +52,13 @@ func main() {
 		log.Fatalf("could not call SubscribeJSON for move: %v", err)
 	}
 
+	warKey := routing.WarRecognitionsPrefix + ".*"
+	warQueue := "war"
+	err = pubsub.SubscribeJSON(conn, routing.ExchangePerilTopic, warQueue, warKey, pubsub.Durable, handlerWar(gameState))
+	if err != nil {
+		log.Fatalf("could not call SubscribeJSON for move: %v", err)
+	}
+
 	for {
 		words := gamelogic.GetInput()
 		if len(words) == 0 {
