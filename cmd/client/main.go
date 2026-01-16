@@ -54,7 +54,7 @@ func main() {
 
 	warKey := routing.WarRecognitionsPrefix + ".*"
 	warQueue := "war"
-	err = pubsub.SubscribeJSON(conn, routing.ExchangePerilTopic, warQueue, warKey, pubsub.Durable, handlerWar(gameState))
+	err = pubsub.SubscribeJSON(conn, routing.ExchangePerilTopic, warQueue, warKey, pubsub.Durable, handlerWar(gameState, ch))
 	if err != nil {
 		log.Fatalf("could not call SubscribeJSON for move: %v", err)
 	}

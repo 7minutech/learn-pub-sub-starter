@@ -51,7 +51,7 @@ func handlerWar(gs *gamelogic.GameState, publishCh *amqp.Channel) func(gamelogic
 }
 
 func publishGameLog(gl routing.GameLog, publishCh *amqp.Channel) error {
-	err := pubsub.PublishGob(publishCh, routing.ExchangePerilTopic, routing.GameLogSlug+gl.Username, gl)
+	err := pubsub.PublishGob(publishCh, routing.ExchangePerilTopic, routing.GameLogSlug+"."+gl.Username, gl)
 	if err != nil {
 		return err
 	}
