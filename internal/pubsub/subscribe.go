@@ -30,6 +30,9 @@ func SubscribeJSON[T any](
 		return err
 	}
 
+	if err := ch.Qos(10, 0, true); err != nil {
+		return err
+	}
 	deliveryCh, err := ch.Consume(queueName, "", false, false, false, false, amqp.Table{})
 	if err != nil {
 		return err
@@ -75,6 +78,9 @@ func SubscribeGob[T any](
 		return err
 	}
 
+	if err := ch.Qos(10, 0, true); err != nil {
+		return err
+	}
 	deliveryCh, err := ch.Consume(queueName, "", false, false, false, false, amqp.Table{})
 	if err != nil {
 		return err
