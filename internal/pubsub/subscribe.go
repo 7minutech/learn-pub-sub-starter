@@ -1,6 +1,8 @@
 package pubsub
 
 import (
+	"bytes"
+	"encoding/gob"
 	"encoding/json"
 	"log"
 
@@ -39,6 +41,52 @@ func SubscribeJSON[T any](
 			if err := json.Unmarshal(delivery.Body, &obj); err != nil {
 				log.Print("error: unmarshling deliveries", err)
 				return
+			}
+			ackType := handler(obj)
+			switch ackType {
+			case Ack:
+				delivery.Ack(false)
+				log.Print("Message was ack")
+			case NackRequeue:
+				delivery.Nack(false, true)
+				log.Print("Message was nack and requeued")
+			case NackDiscard:
+				delivery.Nack(false, false)
+				log.Print("Message was nack and discarded")
+			}
+		}
+	}
+
+	go recieveMessages()
+
+	return nil
+}
+
+func SubscribeGob[T any](
+	conn *amqp.Connection,
+	exchange,
+	queueName,
+	key string,
+	queueType SimpleQueueType, // an enum to represent "durable" or "transient"
+	handler func(T) AckType,
+) error {
+	ch, _, err := DeclareAndBind(conn, exchange, queueName, key, queueType)
+	if err != nil {
+		return err
+	}
+
+	deliveryCh, err := ch.Consume(queueName, "", false, false, false, false, amqp.Table{})
+	if err != nil {
+		return err
+	}
+
+	recieveMessages := func() {
+		for delivery := range deliveryCh {
+			var obj T
+			buf := bytes.NewBuffer(delivery.Body)
+			if err := gob.NewDecoder(buf).Decode(&obj); err != nil {
+				log.Print("error: decoding deliveries using gob", err)
+				continue
 			}
 			ackType := handler(obj)
 			switch ackType {

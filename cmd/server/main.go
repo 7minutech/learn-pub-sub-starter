@@ -30,7 +30,10 @@ func main() {
 
 	gamelogic.PrintServerHelp()
 
-	pubsub.DeclareAndBind(conn, routing.ExchangePerilTopic, routing.GameLogSlug, routing.GameLogKey, pubsub.Durable)
+	err = pubsub.SubscribeGob(conn, routing.ExchangePerilTopic, routing.GameLogSlug, routing.GameLogKey, pubsub.Durable, handlerLog())
+	if err != nil {
+		log.Fatalf("could not call SubscribeGob for log: %v", err)
+	}
 
 	for {
 		words := gamelogic.GetInput()
